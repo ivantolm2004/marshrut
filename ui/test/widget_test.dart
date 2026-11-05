@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:marshrut/main.dart';
 import 'package:marshrut/backend.dart';
@@ -7,6 +8,7 @@ class FixtureBackend extends Backend {
   String selected = '';
   bool pinging = false;
   bool autoStart = true, autoWarp = true;
+  bool connectOnStartup = true;
   final actions = <String>[];
   @override
   Future<Map<String, dynamic>> call(String action,
@@ -17,6 +19,9 @@ class FixtureBackend extends Backend {
     if (action == 'cancel_server_ping') pinging = false;
     if (action == 'autostart') autoStart = args['value'] as bool;
     if (action == 'auto_warp') autoWarp = args['value'] as bool;
+    if (action == 'connect_on_startup') {
+      connectOnStartup = args['value'] as bool;
+    }
     return {
       'phase': 'disconnected',
       'groups': [
@@ -46,6 +51,7 @@ class FixtureBackend extends Backend {
       'autostart_supported': true,
       'autostart': autoStart,
       'auto_warp': autoWarp,
+      'connect_on_startup': connectOnStartup,
       'selected_server': selected,
       'server_pings': {
         'fixture': {
@@ -109,7 +115,74 @@ class AndroidDiagnosticsBackend extends FixtureBackend {
   }
 }
 
+class DelayedServiceBackend extends FixtureBackend {
+  bool available = false;
+  @override
+  Future<Map<String, dynamic>> call(String action,
+      [Map<String, dynamic> args = const {}]) async {
+    if (action == 'status' && !available) {
+      throw CoreException('Служба ещё запускается');
+    }
+    return super.call(action, args);
+  }
+}
+
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  setUpAll(() async {
+    final fonts = FontLoader('PT Sans')
+      ..addFont(rootBundle.load('assets/fonts/PT_Sans-Web-Regular.ttf'))
+      ..addFont(rootBundle.load('assets/fonts/PT_Sans-Web-Bold.ttf'));
+    await fonts.load();
+  });
+  testWidgets('Startup launch connects once after service becomes available',
+      (tester) async {
+    final backend = DelayedServiceBackend();
+    await tester.pumpWidget(MarshrutApp(backend: backend, startupLaunch: true));
+    await tester.pumpAndSettle();
+    expect(backend.actions, isNot(contains('startup_connect')));
+    backend.available = true;
+    await tester.pump(const Duration(seconds: 5));
+    await tester.pumpAndSettle();
+    expect(backend.actions.where((a) => a == 'startup_connect').length, 1);
+    await tester.pump(const Duration(seconds: 10));
+    await tester.pumpAndSettle();
+    expect(backend.actions.where((a) => a == 'startup_connect').length, 1);
+    await tester.pumpWidget(const SizedBox());
+  });
+  for (final scenario in ['manual', 'autorun_off', 'connect_off', 'android']) {
+    testWidgets('No automatic connection for $scenario', (tester) async {
+      final backend = scenario == 'android'
+          ? AndroidDiagnosticsBackend()
+          : FixtureBackend();
+      if (scenario == 'autorun_off') backend.autoStart = false;
+      if (scenario == 'connect_off') backend.connectOnStartup = false;
+      await tester.pumpWidget(
+          MarshrutApp(backend: backend, startupLaunch: scenario != 'manual'));
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 5));
+      await tester.pumpAndSettle();
+      expect(backend.actions, isNot(contains('startup_connect')));
+      await tester.pumpWidget(const SizedBox());
+    });
+  }
+  testWidgets('Connection on startup has an independent settings switch',
+      (tester) async {
+    final backend = FixtureBackend();
+    await tester.pumpWidget(MarshrutApp(backend: backend));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Настройки').last);
+    await tester.pumpAndSettle();
+    final toggle =
+        find.widgetWithText(SwitchListTile, 'Подключаться при автозапуске');
+    await tester.ensureVisible(toggle);
+    await tester.tap(toggle);
+    await tester.pumpAndSettle();
+    expect(backend.connectOnStartup, false);
+    expect(backend.autoStart, true);
+    expect(backend.actions, contains('connect_on_startup'));
+    await tester.pumpWidget(const SizedBox());
+  });
   testWidgets('Android connection failure details appear before connection',
       (tester) async {
     tester.view.physicalSize = const Size(360, 800);

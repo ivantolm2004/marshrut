@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'backend.dart';
 
-void main() => runApp(const MarshrutApp());
+void main(List<String> args) =>
+    runApp(MarshrutApp(startupLaunch: args.contains('--startup')));
 
 const background = Color(0xFF101215);
 const surface = Color(0xFF1A1D21);
@@ -12,11 +13,12 @@ const muted = Color(0xFF90999F);
 const accent = Color(0xFFB9F277);
 const border = Color(0xFF2D3338);
 const appVersion =
-    String.fromEnvironment('FLUTTER_BUILD_NAME', defaultValue: '0.1.3');
+    String.fromEnvironment('FLUTTER_BUILD_NAME', defaultValue: '0.1.7');
 
 class MarshrutApp extends StatelessWidget {
-  const MarshrutApp({super.key, this.backend});
+  const MarshrutApp({super.key, this.backend, this.startupLaunch = false});
   final Backend? backend;
+  final bool startupLaunch;
   @override
   Widget build(BuildContext context) => MaterialApp(
         title: 'Маршрут',
@@ -30,7 +32,7 @@ class MarshrutApp extends StatelessWidget {
               surface: surface,
               onPrimary: background,
               outline: border),
-          fontFamily: 'Segoe UI',
+          fontFamily: 'PT Sans',
           cardTheme: const CardThemeData(
               color: surface, elevation: 0, margin: EdgeInsets.zero),
           inputDecorationTheme: InputDecorationTheme(
@@ -42,13 +44,14 @@ class MarshrutApp extends StatelessWidget {
           snackBarTheme:
               const SnackBarThemeData(behavior: SnackBarBehavior.floating),
         ),
-        home: Shell(backend: backend),
+        home: Shell(backend: backend, startupLaunch: startupLaunch),
       );
 }
 
 class Shell extends StatefulWidget {
-  const Shell({super.key, this.backend});
+  const Shell({super.key, this.backend, this.startupLaunch = false});
   final Backend? backend;
+  final bool startupLaunch;
   @override
   State<Shell> createState() => _ShellState();
 }
@@ -59,6 +62,7 @@ class _ShellState extends State<Shell> {
   Map<String, dynamic> state = {};
   int page = 0;
   bool busy = false, polling = false;
+  bool startupRequested = false;
   String? error;
   Timer? timer;
   final labels = [
@@ -104,6 +108,16 @@ class _ShellState extends State<Shell> {
           state = next;
           error = null;
         });
+        // Wait until the service answers. Consume the launch once, so polling
+        // never reconnects after a user's later manual disconnect.
+        if (widget.startupLaunch && !startupRequested) {
+          startupRequested = true;
+          if (next['platform'] == 'windows' &&
+              next['autostart'] == true &&
+              next['connect_on_startup'] == true) {
+            unawaited(act('startup_connect'));
+          }
+        }
       }
     } catch (e) {
       if (mounted) setState(() => error = e.toString());
@@ -1081,6 +1095,19 @@ class _ShellState extends State<Shell> {
               onChanged: busy || state['autostart_supported'] != true
                   ? null
                   : (v) => act('autostart', {'value': v})),
+          if (state['platform'] == 'windows') ...[
+            const Divider(color: border, height: 32),
+            SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: const Text('Подключаться при автозапуске'),
+                subtitle: const Text(
+                    'Включать подключение при входе в Windows. Нужны включённый автозапуск и добавленный сервер или профиль WARP.',
+                    style: TextStyle(color: muted, height: 1.5)),
+                value: state['connect_on_startup'] == true,
+                onChanged: busy
+                    ? null
+                    : (v) => act('connect_on_startup', {'value': v})),
+          ],
           const Divider(color: border, height: 32),
           SwitchListTile(
               contentPadding: EdgeInsets.zero,

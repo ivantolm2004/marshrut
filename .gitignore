@@ -14,3 +14,17 @@ state/
 .gradle/
 .cxx/
 vendor/
+
+release/
+private/
+.env
+.env.*
+*.dpapi
+*.p12
+*.pfx
+*.apk
+*.so
+*.pdb
+*.class
+*.pyc
+__pycache__/

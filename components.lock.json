@@ -38,5 +38,17 @@
     "compile_sdk": 36,
     "abi": "arm64-v8a",
     "ndk": "28.2.13676358"
+  },
+  "ui_font": {
+    "family": "PT Sans",
+    "repository": "https://github.com/google/fonts",
+    "commit": "468fc9162a8de64e4aa49a289b0ddcfc94ba072b",
+    "path": "ofl/ptsans",
+    "sha256": {
+      "PT_Sans-Web-Regular.ttf": "9cc831490532009bae2b3ce0d39c62adfc889060beb421593bfd9d2396d0f10a",
+      "PT_Sans-Web-Bold.ttf": "3128bd5ecf01816e59a23d54c57a7a6b14615b07db53ff277c77376010265b05",
+      "OFL.txt": "2758cf7a872827f39661cf8cc24188113c030447aefb5ca7145993650076ca8c"
+    },
+    "license": "OFL-1.1"
   }
 }

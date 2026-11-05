@@ -26,6 +26,6 @@ payload=root/'core'/'cmd'/'marshrut-setup'/'payload.zip'
 with zipfile.ZipFile(payload,'w',zipfile.ZIP_DEFLATED,compresslevel=6) as z:
     for file in bundle.rglob('*'):
         if file.is_file():z.write(file,file.relative_to(bundle).as_posix())
-setup=a.output.resolve() if a.output else release/'Marshrut-0.1.3-Windows-x64-Setup.exe'
+setup=a.output.resolve() if a.output else release/'Marshrut-0.1.7-Windows-x64-Setup.exe'
 subprocess.run([a.go,'build','-mod=mod','-trimpath','-tags','installer','-ldflags','-H=windowsgui -s -w','-o',str(setup),'./cmd/marshrut-setup'],cwd=root/'core',check=True)
 print(json.dumps({'installer':setup.name,'bytes':setup.stat().st_size,'sha256':hashlib.file_digest(setup.open('rb'),'sha256').hexdigest()}))

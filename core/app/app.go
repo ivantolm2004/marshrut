@@ -37,18 +37,19 @@ type Subscription struct {
 	ServerIDs []string  `json:"server_ids"`
 }
 type Settings struct {
-	Version        int                   `json:"version"`
-	Servers        []profile.Server      `json:"servers"`
-	Subscriptions  []Subscription        `json:"subscriptions"`
-	Warp           *profile.Warp         `json:"warp,omitempty"`
-	WarpAccount    map[string]string     `json:"warp_account,omitempty"`
-	Pins           map[string]string     `json:"pins"`
-	DirectFallback bool                  `json:"direct_fallback"`
-	DPIEnabled     bool                  `json:"dpi_enabled"`
-	SelectedServer string                `json:"selected_server,omitempty"`
-	LastServer     string                `json:"last_server,omitempty"`
-	ServerPings    map[string]ServerPing `json:"server_pings,omitempty"`
-	AutoWarp       bool                  `json:"auto_warp"`
+	Version          int                   `json:"version"`
+	Servers          []profile.Server      `json:"servers"`
+	Subscriptions    []Subscription        `json:"subscriptions"`
+	Warp             *profile.Warp         `json:"warp,omitempty"`
+	WarpAccount      map[string]string     `json:"warp_account,omitempty"`
+	Pins             map[string]string     `json:"pins"`
+	DirectFallback   bool                  `json:"direct_fallback"`
+	DPIEnabled       bool                  `json:"dpi_enabled"`
+	SelectedServer   string                `json:"selected_server,omitempty"`
+	LastServer       string                `json:"last_server,omitempty"`
+	ServerPings      map[string]ServerPing `json:"server_pings,omitempty"`
+	AutoWarp         bool                  `json:"auto_warp"`
+	ConnectOnStartup bool                  `json:"connect_on_startup"`
 }
 type Request struct {
 	Action      string `json:"action"`
@@ -100,7 +101,7 @@ type Manager struct {
 }
 
 func New(platform string, r Runtime, store secure.Store) (*Manager, error) {
-	m := &Manager{runtime: r, store: store, platform: platform, policy: route.New(), phase: "disconnected", settings: Settings{Version: 1, DirectFallback: true, DPIEnabled: true, AutoWarp: true, Pins: map[string]string{}}}
+	m := &Manager{runtime: r, store: store, platform: platform, policy: route.New(), phase: "disconnected", settings: Settings{Version: 1, DirectFallback: true, DPIEnabled: true, AutoWarp: true, ConnectOnStartup: platform == "windows", Pins: map[string]string{}}}
 	if e := store.Load(&m.settings); e != nil && !os.IsNotExist(e) {
 		return nil, e
 	}
@@ -154,6 +155,16 @@ func (m *Manager) Handle(req Request) Response {
 	var data any
 	var err error
 	switch req.Action {
+	case "connect_on_startup":
+		if m.platform != "windows" {
+			err = errors.New("Эта настройка доступна только в Windows")
+		} else {
+			err = m.persist(func(s *Settings) { s.ConnectOnStartup = req.Value })
+		}
+	case "startup_connect":
+		var attempted bool
+		attempted, err = m.connectAtStartup(m.connect)
+		data = map[string]any{"attempted": attempted}
 	case "autostart":
 		if startup, ok := m.runtime.(StartupRuntime); ok && startup.StartupSupported() {
 			err = startup.SetStartupEnabled(req.Value)
@@ -1007,8 +1018,8 @@ func (m *Manager) summary(diagnostics bool) map[string]any {
 		components[1].State = "configuring"
 		components[1].Detail = "Подготавливаем профиль автоматически"
 	}
-	result := map[string]any{"version": "0.1.3", "platform": m.platform, "phase": m.phase, "error": m.lastError, "components": components, "decisions": m.policy.Current, "samples": m.policy.Samples, "groups": route.Groups(), "pins": m.settings.Pins, "direct_fallback": m.settings.DirectFallback, "dpi_enabled": m.settings.DPIEnabled, "warnings": m.warnings, "servers": servers, "subscriptions": subscriptions,
-		"selected_server": m.settings.SelectedServer, "server_pings": m.serverPings, "auto_warp": m.settings.AutoWarp, "warp_setup": m.warpSetup}
+	result := map[string]any{"version": "0.1.7", "platform": m.platform, "phase": m.phase, "error": m.lastError, "components": components, "decisions": m.policy.Current, "samples": m.policy.Samples, "groups": route.Groups(), "pins": m.settings.Pins, "direct_fallback": m.settings.DirectFallback, "dpi_enabled": m.settings.DPIEnabled, "warnings": m.warnings, "servers": servers, "subscriptions": subscriptions,
+		"selected_server": m.settings.SelectedServer, "server_pings": m.serverPings, "auto_warp": m.settings.AutoWarp, "warp_setup": m.warpSetup, "connect_on_startup": m.settings.ConnectOnStartup}
 	if startup, ok := m.runtime.(StartupRuntime); ok && startup.StartupSupported() {
 		result["autostart_supported"] = true
 		enabled, e := startup.StartupEnabled()

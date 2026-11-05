@@ -94,7 +94,7 @@ func main() {
 		e = install(root, *owner)
 	}
 	if !*remove {
-		result := map[string]any{"version": "0.1.3", "ok": e == nil, "time": time.Now().UTC()}
+		result := map[string]any{"version": "0.1.7", "ok": e == nil, "time": time.Now().UTC()}
 		if e != nil {
 			result["error"] = e.Error()
 		}
@@ -323,7 +323,7 @@ func install(root, owner string) error {
 	if e = copyFile(setup, filepath.Join(root, "uninstall.exe")); e != nil {
 		return errors.New("Не удалось сохранить программу удаления")
 	}
-	record := Record{Files: append(files, "uninstall.exe", "install-manifest.json"), Owner: owner, Version: "0.1.3"}
+	record := Record{Files: append(files, "uninstall.exe", "install-manifest.json", "install-result.json"), Owner: owner, Version: "0.1.7"}
 	data, _ := json.MarshalIndent(record, "", "  ")
 	if e = os.WriteFile(filepath.Join(root, "install-manifest.json"), data, 0644); e != nil {
 		return e
@@ -332,7 +332,7 @@ func install(root, owner string) error {
 	if e == nil {
 		defer key.Close()
 		key.SetStringValue("DisplayName", "Маршрут")
-		key.SetStringValue("DisplayVersion", "0.1.3")
+		key.SetStringValue("DisplayVersion", "0.1.7")
 		key.SetStringValue("InstallLocation", root)
 		key.SetStringValue("DisplayIcon", filepath.Join(root, "marshrut.exe"))
 		key.SetStringValue("UninstallString", "\""+filepath.Join(root, "uninstall.exe")+"\" --uninstall")

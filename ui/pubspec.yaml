@@ -1,7 +1,7 @@
 name: marshrut
 description: Личный клиент VLESS, zapret и WARP для Windows и Android.
 publish_to: none
-version: 0.1.6+7
+version: 0.1.7+8
 environment:
   sdk: '>=3.5.0 <4.0.0'
 dependencies:
@@ -13,3 +13,10 @@ dev_dependencies:
   flutter_lints: ^5.0.0
 flutter:
   uses-material-design: true
+  fonts:
+    - family: PT Sans
+      fonts:
+        - asset: assets/fonts/PT_Sans-Web-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/PT_Sans-Web-Bold.ttf
+          weight: 700

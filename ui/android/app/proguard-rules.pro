@@ -1,0 +1,3 @@
+-keep class go.** { *; }
+-keep class ru.marshrut.mobile.** { *; }
+-keep class ru.marshrut.libbox.** { *; }

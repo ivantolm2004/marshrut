@@ -1,0 +1,42 @@
+{
+  "schema": 1,
+  "flutter": {
+    "version": "3.47.7",
+    "commit": "abaf9c523780a608bd46686fd5e53740a07077f8",
+    "engine": "deb287481e3ce9468f3434937ced4240a70539ca"
+  },
+  "windows_compiler": {
+    "version": "llvm-mingw-20261006-ucrt-x86_64",
+    "sha256": "317492c456aa27ee607a5919f1d2d38dcdc1112516a24d0bf4b00d078f52d17a"
+  },
+  "sing_box": {
+    "repository": "https://github.com/SagerNet/sing-box.git",
+    "ref": "v1.14.3",
+    "commit": "7054cac5124465ffdb145870d7c01885566711b1",
+    "license": "GPL-3.0-or-later"
+  },
+  "wgcf": {
+    "repository": "https://github.com/ViRb3/wgcf",
+    "version": "v2.3.1",
+    "commit": "de6bba7147dc965a1b8e4de113a709750697ccea",
+    "license": "MIT"
+  },
+  "zapret2": {
+    "version": "v1.0.5.2",
+    "url": "https://github.com/bol-van/zapret2/releases/download/v1.0.5.2/zapret2-v1.0.5.2.zip",
+    "sha256": "f585590bea6da82ac2c74926f6ac17e6204ee8b53e455c2ba2edae0c58c5d4ac"
+  },
+  "tpws": {
+    "repository": "https://github.com/bol-van/zapret.git",
+    "ref": "master",
+    "commit": "c4d0b1990129dce2b28095277173ee0d7702d304",
+    "license": "MIT"
+  },
+  "gomobile": "github.com/sagernet/gomobile@v0.1.12",
+  "android": {
+    "min_sdk": 29,
+    "compile_sdk": 36,
+    "abi": "arm64-v8a",
+    "ndk": "28.2.13676358"
+  }
+}

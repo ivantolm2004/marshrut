@@ -1,0 +1,16 @@
+.dart_tool/
+build/
+.flutter-plugins*
+local.properties
+*.keystore
+*.jks
+key.properties
+runtime/
+state/
+*.aar
+*.exe
+*.dll
+*.zip
+.gradle/
+.cxx/
+vendor/

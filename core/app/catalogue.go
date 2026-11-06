@@ -10,8 +10,8 @@ import (
 )
 
 func (m *Manager) exportCatalogue() (catalogue.Transfer, error) {
-	if m.platform != "windows" {
-		return catalogue.Transfer{}, errors.New("Каталог доступен в Windows")
+	if m.platform != "windows" && m.platform != "android" {
+		return catalogue.Transfer{}, errors.New("Каталог доступен в Windows и Android")
 	}
 	document := catalogue.Transfer{
 		Format: catalogue.TransferFormat, Schema: 1,
@@ -37,6 +37,18 @@ func (m *Manager) importCatalogue(document *catalogue.Transfer, revision uint64)
 	if err != nil {
 		return err
 	}
+	if m.platform == "android" {
+		for _, rule := range rules {
+			if len(rule.Processes)+len(rule.ProcessPaths) != 0 {
+				return errors.New("Android импортирует правила сайтов и подсетей. Удалите из JSON правила программ Windows")
+			}
+		}
+		for _, entry := range entries {
+			if len(entry.Definition.Processes)+len(entry.Definition.ProcessPaths) != 0 {
+				return errors.New("Android импортирует сайты и подсети. Удалите из JSON записи программ Windows")
+			}
+		}
+	}
 	return m.updateCatalogue(func(s *catalogue.Snapshot) error {
 		if err := checkCatalogueRevision(s, revision); err != nil {
 			return err
@@ -47,6 +59,19 @@ func (m *Manager) importCatalogue(document *catalogue.Transfer, revision uint64)
 		s.Revision++
 		return nil
 	})
+}
+
+func mobileCatalogueSeed() []route.CatalogueEntry {
+	var entries []route.CatalogueEntry
+	for _, r := range route.DefaultRules() {
+		if len(r.Domains)+len(r.IPCIDRs) == 0 {
+			continue
+		}
+		r.Processes, r.ProcessPaths = nil, nil
+		r.Enabled = false
+		entries = append(entries, route.EntryFromRule(r, "builtin"))
+	}
+	return entries
 }
 
 func (m *Manager) catalogueSeed() catalogue.Snapshot {
@@ -69,8 +94,28 @@ func (m *Manager) loadCatalogue() error {
 // The database is authoritative. A failed compatibility mirror is surfaced
 // separately; a committed database operation must not be reported as rejected.
 func (m *Manager) updateCatalogue(change func(*catalogue.Snapshot) error, metadataOnly ...bool) error {
+	if m.platform == "android" {
+		m.mu.Lock()
+		defer m.mu.Unlock()
+		s := catalogue.Snapshot{
+			Schema: 1, Revision: m.settings.RoutingRevision,
+			Rules:   append([]route.Rule{}, m.settings.RoutingRules...),
+			Entries: append([]route.CatalogueEntry{}, m.catalogueEntries...),
+		}
+		if err := change(&s); err != nil {
+			return err
+		}
+		next := m.settings
+		next.RoutingRules, next.RoutingRevision = s.Rules, s.Revision
+		next.CatalogueEntries = s.Entries
+		if err := m.store.Save(next); err != nil {
+			return err
+		}
+		m.settings, m.catalogueEntries = next, s.Entries
+		return nil
+	}
 	if m.platform != "windows" {
-		return errors.New("Каталог доступен в Windows")
+		return errors.New("Каталог доступен в Windows и Android")
 	}
 	s, err := catalogue.Update(m.store.Path+".routing.sqlite", m.store.Codec, m.catalogueSeed(), change)
 	if err != nil {

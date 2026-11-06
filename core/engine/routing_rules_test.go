@@ -47,3 +47,36 @@ func TestEmptyRuleListDisablesLegacyDomainRulesAndMissingRoutesBlock(t *testing.
 		}
 	}
 }
+
+func TestAndroidCatalogueOverridePrecedesServiceFallbackInTrafficAndDNS(t *testing.T) {
+	p, err := Build(Options{Platform: "android", APISecret: "test", ProbePassword: "test",
+		Rules: []route.Rule{{ID: "video", Name: "YouTube", Category: "video", Route: "direct",
+			Enabled: true, Domains: []string{"youtube.com"}}}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	var config struct {
+		Route struct{ Rules []map[string]any }
+		DNS   struct{ Rules []map[string]any }
+	}
+	if err := json.Unmarshal(p.Config, &config); err != nil {
+		t.Fatal(err)
+	}
+	first := func(rules []map[string]any, host string) map[string]any {
+		for _, r := range rules {
+			domains, _ := r["domain_suffix"].([]any)
+			for _, domain := range domains {
+				if domain == host {
+					return r
+				}
+			}
+		}
+		return nil
+	}
+	if first(config.Route.Rules, "youtube.com")["outbound"] != "direct" ||
+		first(config.DNS.Rules, "youtube.com")["server"] != "dns-probe-direct" ||
+		first(config.Route.Rules, "discord.com")["outbound"] != "discord-udp" ||
+		first(config.DNS.Rules, "discord.com")["server"] != "dns-discord" {
+		t.Fatal("Android override or inherited service routing was lost")
+	}
+}

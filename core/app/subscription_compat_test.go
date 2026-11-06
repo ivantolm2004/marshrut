@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync/atomic"
 	"testing"
 )
 
@@ -74,5 +75,44 @@ func TestWindowsFormatFailuresPreserveCacheAndHideCredentials(t *testing.T) {
 	after, _ := json.Marshal(m.settings)
 	if r.OK || strings.Contains(r.Error, "SENSITIVE_SECRET") || string(before) != string(after) {
 		t.Fatal("failure changed cache or leaked credentials")
+	}
+}
+
+func TestAndroidNegotiatesCompatibleSubscriptionAndKeepsLastGoodRefresh(t *testing.T) {
+	m := testManager(t)
+	m.platform = "android"
+	var mode, requests atomic.Int32
+	server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requests.Add(1)
+		switch mode.Load() {
+		case 1:
+			http.Error(w, "upstream unavailable", http.StatusBadGateway)
+			return
+		case 2:
+			http.Error(w, "not authorized", http.StatusUnauthorized)
+			return
+		}
+		xhttp := strings.Replace(uri, "type=tcp", "type=xhttp", 1)
+		if strings.HasPrefix(r.UserAgent(), "v2rayN/") {
+			w.Write([]byte(uri + "\n" + xhttp))
+			return
+		}
+		w.Write([]byte(xhttp))
+	}))
+	defer server.Close()
+	m.subscriptionTransport = server.Client().Transport
+	resp := m.Handle(Request{Action: "import", Text: server.URL})
+	if !resp.OK || len(m.settings.Servers) != 1 || len(m.warnings) != 1 || requests.Load() != 2 {
+		t.Fatal("Android did not request a compatible provider format", resp.Error)
+	}
+	before, _ := json.Marshal(m.settings)
+	for i, status := range []string{"HTTP 502", "HTTP 401"} {
+		mode.Store(int32(i + 1))
+		reqBefore := requests.Load()
+		resp = m.Handle(Request{Action: "refresh"})
+		after, _ := json.Marshal(m.settings)
+		if resp.OK || !strings.Contains(resp.Error, status) || string(before) != string(after) || requests.Load()-reqBefore != 1 {
+			t.Fatal("failed refresh changed the working subscription or retried HTTP errors", resp.Error)
+		}
 	}
 }

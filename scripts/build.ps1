@@ -7,8 +7,8 @@ param(
     [string]$AndroidSdk = $env:ANDROID_HOME,
     [string]$JavaHome = $env:JAVA_HOME,
     [string]$LlvmRoot,
-    [string]$AndroidBuildName = '0.1.6',
-    [int]$AndroidBuildNumber = 7
+    [string]$AndroidBuildName = '0.1.11',
+    [int]$AndroidBuildNumber = 12
 )
 $ErrorActionPreference = 'Stop'
 $project = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path

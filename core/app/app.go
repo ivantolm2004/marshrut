@@ -38,23 +38,24 @@ type Subscription struct {
 	ServerIDs []string  `json:"server_ids"`
 }
 type Settings struct {
-	Version           int                   `json:"version"`
-	Servers           []profile.Server      `json:"servers"`
-	Subscriptions     []Subscription        `json:"subscriptions"`
-	Warp              *profile.Warp         `json:"warp,omitempty"`
-	WarpAccount       map[string]string     `json:"warp_account,omitempty"`
-	Pins              map[string]string     `json:"pins"`
-	DirectFallback    bool                  `json:"direct_fallback"`
-	DPIEnabled        bool                  `json:"dpi_enabled"`
-	SelectedServer    string                `json:"selected_server,omitempty"`
-	LastServer        string                `json:"last_server,omitempty"`
-	ServerPings       map[string]ServerPing `json:"server_pings,omitempty"`
-	AutoWarp          bool                  `json:"auto_warp"`
-	ConnectOnStartup  bool                  `json:"connect_on_startup"`
-	RoutingSchema     int                   `json:"routing_schema"`
-	RoutingRevision   uint64                `json:"routing_revision"`
-	RoutingRules      []route.Rule          `json:"routing_rules"`
-	KnownApplications []route.Application   `json:"known_applications"`
+	Version           int                    `json:"version"`
+	Servers           []profile.Server       `json:"servers"`
+	Subscriptions     []Subscription         `json:"subscriptions"`
+	Warp              *profile.Warp          `json:"warp,omitempty"`
+	WarpAccount       map[string]string      `json:"warp_account,omitempty"`
+	Pins              map[string]string      `json:"pins"`
+	DirectFallback    bool                   `json:"direct_fallback"`
+	DPIEnabled        bool                   `json:"dpi_enabled"`
+	SelectedServer    string                 `json:"selected_server,omitempty"`
+	LastServer        string                 `json:"last_server,omitempty"`
+	ServerPings       map[string]ServerPing  `json:"server_pings,omitempty"`
+	AutoWarp          bool                   `json:"auto_warp"`
+	ConnectOnStartup  bool                   `json:"connect_on_startup"`
+	RoutingSchema     int                    `json:"routing_schema"`
+	RoutingRevision   uint64                 `json:"routing_revision"`
+	RoutingRules      []route.Rule           `json:"routing_rules"`
+	CatalogueEntries  []route.CatalogueEntry `json:"catalogue_entries,omitempty"`
+	KnownApplications []route.Application    `json:"known_applications"`
 }
 type Request struct {
 	Action        string              `json:"action"`
@@ -143,6 +144,14 @@ func New(platform string, r Runtime, store secure.Store) (*Manager, error) {
 		if err := m.loadCatalogue(); err != nil {
 			return nil, err
 		}
+	} else if platform == "android" {
+		if m.settings.RoutingSchema == 0 {
+			m.settings.RoutingSchema = 1
+			m.settings.CatalogueEntries = mobileCatalogueSeed()
+		} else if m.settings.RoutingSchema != 1 {
+			return nil, errors.New("Неподдерживаемая версия правил маршрутизации")
+		}
+		m.catalogueEntries = m.settings.CatalogueEntries
 	}
 	m.serverPings = copyServerPings(m.settings.ServerPings)
 	for i := range m.settings.KnownApplications {
@@ -224,6 +233,10 @@ func (m *Manager) Handle(req Request) Response {
 	case "routing_reset":
 		err = m.saveRoutingRules(route.DefaultRules(), req.RulesRevision)
 	case "routing_apply":
+		if m.platform == "android" {
+			data = map[string]any{"notice": "Правила применятся при следующем подключении"}
+			break
+		}
 		if m.platform != "windows" {
 			err = errors.New("Редактор правил доступен в Windows")
 			break
@@ -547,7 +560,8 @@ func (m *Manager) fetch(source string) (string, error) {
 	// Subscription servers may select their output format by client identity.
 	// Retry only format failures; never retry authorization or network failures.
 	agents := []string{"Marshrut/0.1 sing-box"}
-	if m.platform == "windows" {
+	negotiate := m.platform == "windows" || m.platform == "android"
+	if negotiate {
 		agents = append(agents, "v2rayN/7.0", "Clash.Meta")
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
@@ -576,7 +590,7 @@ func (m *Manager) fetch(source string) (string, error) {
 		if readError != nil || len(b) > profile.MaxBytes {
 			return "", errors.New("Не удалось прочитать подписку; рабочие настройки сохранены")
 		}
-		if m.platform != "windows" {
+		if !negotiate {
 			return string(b), nil
 		}
 		if _, decodeError := m.decodeSubscription(string(b)); decodeError == nil {
@@ -591,10 +605,14 @@ func (m *Manager) fetch(source string) (string, error) {
 	return "", fmt.Errorf("%s; рабочие настройки сохранены", firstError)
 }
 func (m *Manager) decodeSubscription(text string) (profile.Import, error) {
-	if m.platform == "windows" {
+	switch m.platform {
+	case "windows":
 		return profile.DecodeWindows(text)
+	case "android":
+		return profile.DecodeAndroid(text)
+	default:
+		return profile.Decode(text)
 	}
-	return profile.Decode(text)
 }
 func (m *Manager) refresh(id string) (any, error) {
 	m.stopServerPings()
@@ -607,6 +625,7 @@ func (m *Manager) refresh(id string) (any, error) {
 	if len(targets) == 0 {
 		return nil, errors.New("Подписка не найдена")
 	}
+	var warnings []string
 	for _, sub := range targets {
 		text, e := m.fetch(sub.URL)
 		if e != nil {
@@ -657,13 +676,16 @@ func (m *Manager) refresh(id string) (any, error) {
 		if e != nil {
 			return nil, e
 		}
+		warnings = append(warnings, parsed.Warnings...)
 	}
-	if m.isRunning() {
-		m.mu.Lock()
+	running := m.isRunning()
+	m.mu.Lock()
+	m.warnings = warnings
+	if running {
 		m.warnings = append(m.warnings, "Серверы обновлены. Новая подписка применится при следующем подключении")
-		m.mu.Unlock()
 	}
-	return map[string]int{"updated": len(targets)}, nil
+	m.mu.Unlock()
+	return map[string]any{"updated": len(targets), "warnings": warnings}, nil
 }
 func (m *Manager) removeServer(id string) error {
 	if m.isRunning() {
@@ -755,7 +777,7 @@ func (m *Manager) connectWithRules(rules []route.Rule, revision uint64, refresh 
 		return errors.New("Нет свободного локального порта")
 	}
 	o := engine.Options{Platform: m.platform, Servers: m.settings.Servers, Warp: m.settings.Warp, DPI: m.settings.DPIEnabled && m.runtime.DPIAvailable(), TUN: true, APISecret: secret, ProbeUser: user, ProbePassword: password, APIPort: apiPort}
-	if m.platform == "windows" {
+	if m.platform == "windows" || m.platform == "android" {
 		o.Rules = rules
 	}
 	if preparer, ok := m.runtime.(interface {
@@ -1274,6 +1296,11 @@ func (m *Manager) summary(diagnostics bool) map[string]any {
 	if m.platform == "windows" {
 		result["version"] = "0.1.11"
 		result["compatibility_build"] = "windows-routing-dns-1"
+	} else if m.platform == "android" {
+		result["version"] = "0.1.11"
+		result["compatibility_build"] = "android-provider-catalogue-1"
+	}
+	if m.platform == "windows" || m.platform == "android" {
 		result["routing_supported"] = true
 		result["catalogue_supported"] = true
 		catalogueRows := m.catalogueSummary()

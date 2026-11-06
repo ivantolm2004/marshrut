@@ -61,6 +61,7 @@ class TunnelService : VpnService() {
         if (alive) throw IOException("Ядро уже запущено")
         try {
             ConnectionDiagnostics.stage(this, "libbox_setup")
+            val version = packageManager.getPackageInfo(packageName, 0).versionName ?: "unknown"
             // libbox's plaintext configuration snapshot is disabled by the build patch.
             Libbox.setup(SetupOptions().apply {
                 basePath = filesDir.absolutePath
@@ -68,8 +69,8 @@ class TunnelService : VpnService() {
                 tempPath = cacheDir.absolutePath
                 logMaxLines = 1
                 debug = false
-                appVersion = "0.1.6"
-                appMarketingVersion = "0.1.6"
+                appVersion = version
+                appMarketingVersion = version
                 // Upstream Android client enables this for Android 9+.
                 // Move callback work off the small Android/JNI thread stack.
                 fixAndroidStack = true

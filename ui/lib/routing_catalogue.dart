@@ -444,6 +444,7 @@ class _RoutingCatalogueState extends State<RoutingCatalogue> {
 
   @override
   Widget build(BuildContext context) {
+    final android = widget.state['platform'] == 'android';
     final all = rows;
     final filtered = all.where((e) {
       final d = definition(e);
@@ -473,8 +474,9 @@ class _RoutingCatalogueState extends State<RoutingCatalogue> {
       const Text('Каталог маршрутов',
           style: TextStyle(fontSize: 23, fontWeight: FontWeight.w600)),
       const SizedBox(height: 8),
-      const Text(
-          'Приложения, сайты и сети. Выберите маршрут рядом с нужной записью.'),
+      Text(android
+          ? 'Сайты и сети. Выберите маршрут рядом с нужной записью.'
+          : 'Приложения, сайты и сети. Выберите маршрут рядом с нужной записью.'),
       const SizedBox(height: 16),
       Wrap(spacing: 10, runSpacing: 8, children: [
         FilledButton.icon(
@@ -492,9 +494,10 @@ class _RoutingCatalogueState extends State<RoutingCatalogue> {
                     },
               icon: const Icon(Icons.refresh),
               label: const Text('Обновить приложения')),
-        TextButton(
-            onPressed: () => setState(() => advanced = !advanced),
-            child: Text(advanced ? 'Вернуться к каталогу' : 'Редактор правил')),
+        if (!android)
+          TextButton(
+              onPressed: () => setState(() => advanced = !advanced),
+              child: Text(advanced ? 'Вернуться к каталогу' : 'Редактор правил')),
         if (widget.state['catalogue_transfer_supported'] == true)
           PopupMenuButton<String>(
             enabled: !locked,
@@ -530,15 +533,17 @@ class _RoutingCatalogueState extends State<RoutingCatalogue> {
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               const Text(
                   'Маршруты сохранены. Чтобы они заработали, нужно переподключить VPN.'),
-              const SizedBox(height: 8),
-              FilledButton(
-                  onPressed: locked
-                      ? null
-                      : () async {
-                          final error = await call('routing_apply');
-                          if (error != null && mounted) notify(error);
-                        },
-                  child: const Text('Применить')),
+              if (!android) ...[
+                const SizedBox(height: 8),
+                FilledButton(
+                    onPressed: locked
+                        ? null
+                        : () async {
+                            final error = await call('routing_apply');
+                            if (error != null && mounted) notify(error);
+                          },
+                    child: const Text('Применить')),
+              ],
             ])),
       if ((widget.state['catalogue_error'] as String? ?? '').isNotEmpty)
         Text(widget.state['catalogue_error'] as String),
@@ -555,15 +560,17 @@ class _RoutingCatalogueState extends State<RoutingCatalogue> {
       else ...[
         TextField(
             key: const ValueKey('catalogue_search'),
-            decoration: const InputDecoration(
-                prefixIcon: Icon(Icons.search),
-                labelText: 'Название, сайт, IP или программа'),
+            decoration: InputDecoration(
+                prefixIcon: const Icon(Icons.search),
+                labelText: android
+                    ? 'Название, сайт или IP'
+                    : 'Название, сайт, IP или программа'),
             onChanged: (v) => setState(() => query = v)),
         const SizedBox(height: 12),
         Wrap(spacing: 8, runSpacing: 6, children: [
           for (final e in {
             'all': 'Все',
-            'application': 'Приложения',
+            if (!android) 'application': 'Приложения',
             'site': 'Сайты и сервисы',
             'network': 'IP и подсети'
           }.entries)
@@ -587,7 +594,7 @@ class _RoutingCatalogueState extends State<RoutingCatalogue> {
           for (final e in {
             'all': 'Любой источник',
             'builtin': 'Встроенные',
-            'discovered': 'Обнаруженные',
+            if (!android) 'discovered': 'Обнаруженные',
             'custom': 'Мои записи'
           }.entries)
             ChoiceChip(

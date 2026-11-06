@@ -41,9 +41,33 @@ func Decode(text string) (Import, error) {
 }
 
 // DecodeWindows enables formats and transports supplied by the Windows bundle.
-// Android keeps its existing capabilities until its own runtime supports Xray.
 func DecodeWindows(text string) (Import, error) {
 	return decode(text, true)
+}
+
+// DecodeAndroid shares the provider formats, but only keeps nodes that can
+// run inside the Android VPN's sing-box runtime.
+func DecodeAndroid(text string) (Import, error) {
+	result, err := decode(text, true)
+	if err != nil {
+		return result, err
+	}
+	supported := make([]Server, 0, len(result.Servers))
+	for _, server := range result.Servers {
+		if server.Xray == nil {
+			supported = append(supported, server)
+		}
+	}
+	if skipped := len(result.Servers) - len(supported); skipped > 0 {
+		warning := fmt.Sprintf("Пропущено узлов, требующих Xray: %d. Android-версия не поддерживает XHTTP и другие режимы только для Xray", skipped)
+		result.Warnings = append(result.Warnings, warning)
+		if len(supported) == 0 {
+			result.Servers = nil
+			return result, errors.New(warning)
+		}
+	}
+	result.Servers = supported
+	return result, nil
 }
 
 func decode(text string, windows bool) (Import, error) {

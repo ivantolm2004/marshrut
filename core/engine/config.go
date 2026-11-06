@@ -165,15 +165,18 @@ func Build(o Options) (Plan, error) {
 	}
 	// Private ranges stay local even when the default selector is blocked.
 	rules = append(rules, map[string]any{"ip_is_private": true, "action": "route", "outbound": "direct"})
-	// Telegram uses literal IPs as well as domain names. Route its published ranges.
-	if o.Rules == nil {
-		rules = append(rules, map[string]any{"ip_cidr": []string{"149.154.160.0/20", "91.108.4.0/22", "91.108.8.0/22", "91.108.12.0/22", "91.108.16.0/22", "91.108.56.0/22"}, "network": "udp", "action": "route", "outbound": "telegram-udp"}, map[string]any{"ip_cidr": []string{"149.154.160.0/20", "91.108.4.0/22", "91.108.8.0/22", "91.108.12.0/22", "91.108.16.0/22", "91.108.56.0/22"}, "action": "route", "outbound": "telegram"})
-	}
 	if o.Rules != nil {
 		rules = append(rules, compileRoutingRules(o.Rules, plan.Tags, o.Platform)...)
 		dnsCustom, sets := compileDNSRules(o.Rules, plan.Tags, o.Platform)
 		dnsRules = append(dnsRules, dnsCustom...)
 		dnsRuleSets = sets
+	}
+	// Android catalogue entries override the existing service groups; an
+	// inherited entry leaves their previous TCP, UDP and DNS routes intact.
+	serviceFallbacks := o.Rules == nil || o.Platform == "android"
+	if serviceFallbacks {
+		// Telegram uses literal IPs as well as domain names.
+		rules = append(rules, map[string]any{"ip_cidr": []string{"149.154.160.0/20", "91.108.4.0/22", "91.108.8.0/22", "91.108.12.0/22", "91.108.16.0/22", "91.108.56.0/22"}, "network": "udp", "action": "route", "outbound": "telegram-udp"}, map[string]any{"ip_cidr": []string{"149.154.160.0/20", "91.108.4.0/22", "91.108.8.0/22", "91.108.12.0/22", "91.108.16.0/22", "91.108.56.0/22"}, "action": "route", "outbound": "telegram"})
 	}
 	tunnelChoices := []string{"block"}
 	for _, candidate := range plan.Candidates {
@@ -201,7 +204,7 @@ func Build(o Options) (Plan, error) {
 			}
 		}
 		out = append(out, map[string]any{"type": "selector", "tag": g.ID, "outbounds": selectorChoices, "default": "block", "interrupt_exist_connections": false}, map[string]any{"type": "selector", "tag": g.ID + "-udp", "outbounds": udpChoices, "default": "block", "interrupt_exist_connections": false})
-		if len(g.Domains) > 0 && o.Rules == nil {
+		if len(g.Domains) > 0 && serviceFallbacks {
 			rules = append(rules, map[string]any{"domain_suffix": g.Domains, "network": "udp", "action": "route", "outbound": g.ID + "-udp"}, map[string]any{"domain_suffix": g.Domains, "action": "route", "outbound": g.ID})
 			dnsRules = append(dnsRules, map[string]any{"domain_suffix": g.Domains, "action": "route", "server": "dns-" + g.ID})
 		}

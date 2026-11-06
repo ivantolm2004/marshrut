@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'backend.dart';
+import 'routing_editor.dart';
+import 'routing_catalogue.dart';
 
 void main(List<String> args) =>
     runApp(MarshrutApp(startupLaunch: args.contains('--startup')));
@@ -13,7 +15,7 @@ const muted = Color(0xFF90999F);
 const accent = Color(0xFFB9F277);
 const border = Color(0xFF2D3338);
 const appVersion =
-    String.fromEnvironment('FLUTTER_BUILD_NAME', defaultValue: '0.1.7');
+    String.fromEnvironment('FLUTTER_BUILD_NAME', defaultValue: '0.1.11');
 
 class MarshrutApp extends StatelessWidget {
   const MarshrutApp({super.key, this.backend, this.startupLaunch = false});
@@ -944,7 +946,23 @@ class _ShellState extends State<Shell> {
     if (accepted == true) await act('warp_register', {'accept_terms': true});
   }
 
-  Widget rules() =>
+  Widget rules() {
+    if (state['routing_supported'] != true) return legacyRules();
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      if (state['catalogue_supported'] == true) RoutingCatalogue(
+          backend: core, state: state, onChanged: refresh,
+          busy: busy, connected: active)
+      else RoutingRulesPanel(
+          backend: core, state: state, onChanged: refresh,
+          busy: busy, connected: active),
+      const SizedBox(height: 24),
+      ExpansionTile(
+          title: const Text('Общие маршруты автовыбора'),
+          children: [legacyRules()]),
+    ]);
+  }
+
+  Widget legacyRules() =>
       Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         section('Правила сервисов',
             'Автовыбор учитывает доступность, стабильность и задержку. Можно закрепить конкретный путь.'),

@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"marshrut/engine"
 	"net/netip"
 	"os"
 	"os/exec"
@@ -38,6 +39,7 @@ type Runtime struct {
 	engine                 *box.Box
 	cancel                 context.CancelFunc
 	dpi                    *Process
+	xray                   *Process
 	domains                string
 }
 
@@ -130,6 +132,9 @@ func stop(p *Process) {
 func (r *Runtime) Start(config []byte) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
+	return r.startLocked(config)
+}
+func (r *Runtime) startLocked(config []byte) error {
 	if r.engine != nil {
 		return errors.New("Ядро уже запущено")
 	}
@@ -149,6 +154,9 @@ func (r *Runtime) Start(config []byte) error {
 	if e = instance.Start(); e != nil {
 		cancel()
 		instance.Close()
+		if errors.Is(e, windows.WSAEADDRINUSE) {
+			return engine.ErrLocalPortBusy
+		}
 		return errors.New("Не удалось запустить ядро: проверьте права службы и сетевые компоненты")
 	}
 	r.engine = instance
@@ -167,16 +175,32 @@ func (r *Runtime) Stop() error {
 		e = r.engine.Close()
 	}
 	stop(r.dpi)
+	stop(r.xray)
 	r.engine = nil
 	r.dpi = nil
+	r.xray = nil
 	r.domains = ""
 	if e != nil {
 		return errors.New("Не удалось полностью завершить сетевое ядро")
 	}
 	return nil
 }
-func (r *Runtime) Close()      { r.Stop(); windows.CloseHandle(r.job) }
-func (r *Runtime) Alive() bool { r.mu.Lock(); defer r.mu.Unlock(); return r.engine != nil }
+func (r *Runtime) Close() { r.Stop(); windows.CloseHandle(r.job) }
+func (r *Runtime) Alive() bool {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if r.engine == nil {
+		return false
+	}
+	if r.xray != nil {
+		select {
+		case <-r.xray.done:
+			return false
+		default:
+		}
+	}
+	return true
+}
 func (r *Runtime) DPIAvailable() bool {
 	for _, name := range []string{"zapret/winws2.exe", "zapret/cygwin1.dll", "zapret/WinDivert.dll", "zapret/WinDivert64.sys", "zapret/lua/zapret-lib.lua", "zapret/lua/zapret-antidpi.lua"} {
 		if r.verify(filepath.Join(r.Directory, filepath.FromSlash(name))) != nil {

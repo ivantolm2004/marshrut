@@ -18,6 +18,8 @@ type API struct {
 	Secret string
 }
 
+var ErrLocalPortBusy = errors.New("Локальный порт занят другой программой")
+
 func (a API) Request(ctx context.Context, method, path string, body any) error {
 	data, _ := json.Marshal(body)
 	req, e := http.NewRequestWithContext(ctx, method, fmt.Sprintf("http://127.0.0.1:%d%s", a.Port, path), bytes.NewReader(data))

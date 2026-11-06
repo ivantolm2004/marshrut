@@ -31,7 +31,7 @@ for i,source in enumerate(sources):
     target=objects/f'{i}.o'
     run([compiler,*common,'-c',source,'-o',target]);compiled.append(target)
 resource=objects/'resource.o'
-run([windres,'-D','FLUTTER_VERSION_MAJOR=0','-D','FLUTTER_VERSION_MINOR=1','-D','FLUTTER_VERSION_PATCH=7','-D','FLUTTER_VERSION_BUILD=8','-I',runner,'-i',runner/'Runner.rc','-o',resource])
+run([windres,'-D','FLUTTER_VERSION_MAJOR=0','-D','FLUTTER_VERSION_MINOR=1','-D','FLUTTER_VERSION_PATCH=11','-D','FLUTTER_VERSION_BUILD=12','-I',runner,'-i',runner/'Runner.rc','-o',resource])
 run([compiler,'-municode','-mwindows','-o',bundle/'marshrut.exe',*compiled,resource,ephemeral/'flutter_windows.dll.lib','-ldwmapi','-lole32','-lshell32','-lshcore','-luuid','-lversion'])
 shutil.copy2(ephemeral/'flutter_windows.dll',bundle/'flutter_windows.dll')
 data=bundle/'data';data.mkdir(exist_ok=True)

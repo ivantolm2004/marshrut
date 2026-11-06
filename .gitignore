@@ -20,6 +20,11 @@ private/
 .env
 .env.*
 *.dpapi
+*.sqlite
+*.sqlite-journal
+*.sqlite-wal
+*.sqlite-shm
+*.db
 *.p12
 *.pfx
 *.apk

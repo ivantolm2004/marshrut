@@ -21,6 +21,13 @@
     "commit": "de6bba7147dc965a1b8e4de113a709750697ccea",
     "license": "MIT"
   },
+  "xray": {
+    "repository": "https://github.com/XTLS/Xray-core",
+    "version": "v26.10.31",
+    "url": "https://github.com/XTLS/Xray-core/releases/download/v26.10.31/Xray-windows-64.zip",
+    "sha256": "2e04a9995a6f2ad1b28c0bb25c708ecb2695e43a1c9c7889c4b6ac2b48cf7a6a",
+    "license": "MPL-2.0"
+  },
   "zapret2": {
     "version": "v1.0.5.2",
     "url": "https://github.com/bol-van/zapret2/releases/download/v1.0.5.2/zapret2-v1.0.5.2.zip",

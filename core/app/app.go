@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"marshrut/catalogue"
 	"marshrut/engine"
 	"marshrut/probe"
 	"marshrut/profile"
@@ -37,28 +38,36 @@ type Subscription struct {
 	ServerIDs []string  `json:"server_ids"`
 }
 type Settings struct {
-	Version          int                   `json:"version"`
-	Servers          []profile.Server      `json:"servers"`
-	Subscriptions    []Subscription        `json:"subscriptions"`
-	Warp             *profile.Warp         `json:"warp,omitempty"`
-	WarpAccount      map[string]string     `json:"warp_account,omitempty"`
-	Pins             map[string]string     `json:"pins"`
-	DirectFallback   bool                  `json:"direct_fallback"`
-	DPIEnabled       bool                  `json:"dpi_enabled"`
-	SelectedServer   string                `json:"selected_server,omitempty"`
-	LastServer       string                `json:"last_server,omitempty"`
-	ServerPings      map[string]ServerPing `json:"server_pings,omitempty"`
-	AutoWarp         bool                  `json:"auto_warp"`
-	ConnectOnStartup bool                  `json:"connect_on_startup"`
+	Version           int                   `json:"version"`
+	Servers           []profile.Server      `json:"servers"`
+	Subscriptions     []Subscription        `json:"subscriptions"`
+	Warp              *profile.Warp         `json:"warp,omitempty"`
+	WarpAccount       map[string]string     `json:"warp_account,omitempty"`
+	Pins              map[string]string     `json:"pins"`
+	DirectFallback    bool                  `json:"direct_fallback"`
+	DPIEnabled        bool                  `json:"dpi_enabled"`
+	SelectedServer    string                `json:"selected_server,omitempty"`
+	LastServer        string                `json:"last_server,omitempty"`
+	ServerPings       map[string]ServerPing `json:"server_pings,omitempty"`
+	AutoWarp          bool                  `json:"auto_warp"`
+	ConnectOnStartup  bool                  `json:"connect_on_startup"`
+	RoutingSchema     int                   `json:"routing_schema"`
+	RoutingRevision   uint64                `json:"routing_revision"`
+	RoutingRules      []route.Rule          `json:"routing_rules"`
+	KnownApplications []route.Application   `json:"known_applications"`
 }
 type Request struct {
-	Action      string `json:"action"`
-	Text        string `json:"text,omitempty"`
-	ID          string `json:"id,omitempty"`
-	Group       string `json:"group,omitempty"`
-	Route       string `json:"route,omitempty"`
-	Value       bool   `json:"value,omitempty"`
-	AcceptTerms bool   `json:"accept_terms,omitempty"`
+	Action        string              `json:"action"`
+	Text          string              `json:"text,omitempty"`
+	ID            string              `json:"id,omitempty"`
+	Group         string              `json:"group,omitempty"`
+	Route         string              `json:"route,omitempty"`
+	Value         bool                `json:"value,omitempty"`
+	AcceptTerms   bool                `json:"accept_terms,omitempty"`
+	Rules         []route.Rule        `json:"rules,omitempty"`
+	RulesRevision uint64              `json:"rules_revision,omitempty"`
+	Name          string              `json:"name,omitempty"`
+	Catalogue     *catalogue.Transfer `json:"catalogue,omitempty"`
 }
 type Response struct {
 	OK    bool   `json:"ok"`
@@ -98,6 +107,16 @@ type Manager struct {
 	warpAttemptCancel       context.CancelFunc
 	warpWake                chan struct{}
 	warpSetup               WarpSetupState
+	appliedRules            []route.Rule
+	appliedRulesRevision    uint64
+	applications            []route.Application
+	applicationChecked      time.Time
+	applicationsSaved       time.Time
+	applicationsDirty       bool
+	applicationError        string
+	catalogueEntries        []route.CatalogueEntry
+	catalogueError          string
+	disconnectRequests      uint64
 }
 
 func New(platform string, r Runtime, store secure.Store) (*Manager, error) {
@@ -111,7 +130,26 @@ func New(platform string, r Runtime, store secure.Store) (*Manager, error) {
 	if m.settings.Pins == nil {
 		m.settings.Pins = map[string]string{}
 	}
+	if platform == "windows" {
+		if m.settings.RoutingSchema == 0 {
+			m.settings.RoutingSchema = 1
+			m.settings.RoutingRules = route.DefaultRules()
+		} else if m.settings.RoutingSchema != 1 {
+			return nil, errors.New("Неподдерживаемая версия правил маршрутизации")
+		}
+		if m.settings.RoutingRules == nil {
+			m.settings.RoutingRules = []route.Rule{}
+		}
+		if err := m.loadCatalogue(); err != nil {
+			return nil, err
+		}
+	}
 	m.serverPings = copyServerPings(m.settings.ServerPings)
+	for i := range m.settings.KnownApplications {
+		m.settings.KnownApplications[i].Running = false
+		m.settings.KnownApplications[i].ProcessCount = 0
+		m.settings.KnownApplications[i].RuleID = ""
+	}
 	return m, nil
 }
 func token() string {
@@ -142,6 +180,7 @@ func (m *Manager) Handle(req Request) Response {
 	}
 	if req.Action == "disconnect" {
 		m.mu.Lock()
+		m.disconnectRequests++
 		if m.cancel != nil {
 			m.cancel()
 		}
@@ -155,6 +194,45 @@ func (m *Manager) Handle(req Request) Response {
 	var data any
 	var err error
 	switch req.Action {
+	case "routing_preview":
+		data, err = m.previewRouting(req.ID, req.Text)
+	case "catalogue_save":
+		err = m.saveCatalogueEntry(req)
+	case "catalogue_delete":
+		err = m.deleteCatalogueEntry(req.ID, req.RulesRevision)
+	case "catalogue_export":
+		data, err = m.exportCatalogue()
+	case "catalogue_import":
+		err = m.importCatalogue(req.Catalogue, req.RulesRevision)
+	case "applications_refresh":
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		var apps []route.Application
+		apps, err = m.listApplications(ctx)
+		cancel()
+		if err == nil {
+			m.mergeApplications(apps, time.Now().UTC())
+		}
+	case "routing_save":
+		err = m.saveRoutingRules(req.Rules, req.RulesRevision)
+		if err == nil {
+			notice := "Правила сохранены"
+			if m.isRunning() {
+				notice = "Правила сохранены. Нажмите «Применить», чтобы переподключиться с новым списком"
+			}
+			data = map[string]any{"notice": notice}
+		}
+	case "routing_reset":
+		err = m.saveRoutingRules(route.DefaultRules(), req.RulesRevision)
+	case "routing_apply":
+		if m.platform != "windows" {
+			err = errors.New("Редактор правил доступен в Windows")
+			break
+		}
+		if m.isRunning() {
+			err = m.applyRoutingWith(m.connectWithRules)
+		} else {
+			data = map[string]any{"notice": "Правила применятся при следующем подключении"}
+		}
 	case "connect_on_startup":
 		if m.platform != "windows" {
 			err = errors.New("Эта настройка доступна только в Windows")
@@ -397,7 +475,7 @@ func (m *Manager) importText(text string, allowURL bool) (any, error) {
 			return nil, e
 		}
 	}
-	imported, e := profile.Decode(text)
+	imported, e := m.decodeSubscription(text)
 	if e != nil {
 		return nil, e
 	}
@@ -466,21 +544,57 @@ func (m *Manager) fetch(source string) (string, error) {
 		}
 		client.Transport = &http.Transport{DialContext: func(c context.Context, n, a string) (net.Conn, error) { return socks.Dial(c, a) }}
 	}
-	req, _ := http.NewRequest("GET", source, nil)
-	req.Header.Set("User-Agent", "Marshrut/0.1 sing-box")
-	r, e := client.Do(req)
-	if e != nil {
-		return "", errors.New("Подписка недоступна; рабочие настройки сохранены")
+	// Subscription servers may select their output format by client identity.
+	// Retry only format failures; never retry authorization or network failures.
+	agents := []string{"Marshrut/0.1 sing-box"}
+	if m.platform == "windows" {
+		agents = append(agents, "v2rayN/7.0", "Clash.Meta")
 	}
-	defer r.Body.Close()
-	if r.StatusCode != 200 {
-		return "", fmt.Errorf("Подписка: HTTP %d; рабочие настройки сохранены", r.StatusCode)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	var firstError error
+	for _, agent := range agents {
+		req, _ := http.NewRequestWithContext(ctx, "GET", source, nil)
+		req.Header.Set("User-Agent", agent)
+		req.Header.Set("Accept", "application/json, text/plain, application/yaml, */*")
+		r, requestError := client.Do(req)
+		if requestError != nil {
+			if firstError != nil {
+				break
+			}
+			return "", errors.New("Подписка недоступна; рабочие настройки сохранены")
+		}
+		if r.StatusCode != 200 {
+			r.Body.Close()
+			if firstError != nil {
+				break
+			}
+			return "", fmt.Errorf("Подписка: HTTP %d; рабочие настройки сохранены", r.StatusCode)
+		}
+		b, readError := io.ReadAll(io.LimitReader(r.Body, profile.MaxBytes+1))
+		r.Body.Close()
+		if readError != nil || len(b) > profile.MaxBytes {
+			return "", errors.New("Не удалось прочитать подписку; рабочие настройки сохранены")
+		}
+		if m.platform != "windows" {
+			return string(b), nil
+		}
+		if _, decodeError := m.decodeSubscription(string(b)); decodeError == nil {
+			return string(b), nil
+		} else if firstError == nil {
+			firstError = decodeError
+			if strings.HasPrefix(strings.TrimSpace(strings.ToLower(string(b))), "<") {
+				firstError = errors.New("Ссылка вернула веб-страницу; нужна ссылка подписки, а не личного кабинета")
+			}
+		}
 	}
-	b, e := io.ReadAll(io.LimitReader(r.Body, profile.MaxBytes+1))
-	if e != nil || len(b) > profile.MaxBytes {
-		return "", errors.New("Не удалось прочитать подписку; рабочие настройки сохранены")
+	return "", fmt.Errorf("%s; рабочие настройки сохранены", firstError)
+}
+func (m *Manager) decodeSubscription(text string) (profile.Import, error) {
+	if m.platform == "windows" {
+		return profile.DecodeWindows(text)
 	}
-	return string(b), nil
+	return profile.Decode(text)
 }
 func (m *Manager) refresh(id string) (any, error) {
 	m.stopServerPings()
@@ -498,7 +612,7 @@ func (m *Manager) refresh(id string) (any, error) {
 		if e != nil {
 			return nil, e
 		}
-		parsed, e := profile.Decode(text)
+		parsed, e := m.decodeSubscription(text)
 		if e != nil {
 			return nil, e
 		}
@@ -593,13 +707,17 @@ func (m *Manager) removeSubscription(id string) error {
 	})
 }
 func (m *Manager) connect() error {
+	return m.connectWithRules(m.settings.RoutingRules, m.settings.RoutingRevision, true)
+}
+
+func (m *Manager) connectWithRules(rules []route.Rule, revision uint64, refresh bool) error {
 	if m.isRunning() {
 		return nil
 	}
 	m.stopServerPings()
 	// Daily refresh is attempted before starting the engine; failures preserve the cache.
 	for _, s := range m.settings.Subscriptions {
-		if time.Since(s.Updated) >= 24*time.Hour {
+		if refresh && time.Since(s.Updated) >= 24*time.Hour {
 			if _, e := m.refresh(s.ID); e != nil {
 				m.mu.Lock()
 				m.warnings = append(m.warnings, e.Error())
@@ -637,6 +755,36 @@ func (m *Manager) connect() error {
 		return errors.New("Нет свободного локального порта")
 	}
 	o := engine.Options{Platform: m.platform, Servers: m.settings.Servers, Warp: m.settings.Warp, DPI: m.settings.DPIEnabled && m.runtime.DPIAvailable(), TUN: true, APISecret: secret, ProbeUser: user, ProbePassword: password, APIPort: apiPort}
+	if m.platform == "windows" {
+		o.Rules = rules
+	}
+	if preparer, ok := m.runtime.(interface {
+		PrepareServers(context.Context, []profile.Server) ([]profile.Server, []string)
+	}); ok {
+		var warnings []string
+		o.Servers, warnings = preparer.PrepareServers(runCtx, o.Servers)
+		m.mu.Lock()
+		m.warnings = append(m.warnings, warnings...)
+		m.mu.Unlock()
+		if runCtx.Err() != nil {
+			return errors.New("Подключение отменено")
+		}
+		if len(o.Servers) == 0 && o.Warp == nil {
+			if len(warnings) > 0 {
+				return fmt.Errorf("Нет совместимых серверов. %s", warnings[0])
+			}
+			return errors.New("Нет совместимых серверов в подписке")
+		}
+		if selected := m.settings.SelectedServer; selected != "" {
+			found := false
+			for _, server := range o.Servers {
+				found = found || server.ID == selected
+			}
+			if !found {
+				return errors.New("Выбранный сервер содержит неподдерживаемые параметры; включите автоматический выбор или выберите другой сервер")
+			}
+		}
+	}
 	plan, e := engine.Build(o)
 	if e != nil {
 		return e
@@ -678,12 +826,14 @@ func (m *Manager) connect() error {
 			return e
 		}
 	}
-	if e = m.runtime.Start(plan.Config); e != nil {
+	if e = m.startPreparedPlan(&plan, &o); e != nil {
 		return e
 	}
 	m.mu.Lock()
 	m.plan = plan
-	m.api = engine.API{Port: apiPort, Secret: secret}
+	m.appliedRules = o.Rules
+	m.appliedRulesRevision = revision
+	m.api = engine.API{Port: o.APIPort, Secret: secret}
 	m.user = user
 	m.password = password
 	m.mu.Unlock()
@@ -719,12 +869,41 @@ func (m *Manager) disconnect() error {
 	m.mu.Lock()
 	m.policy = route.New()
 	m.plan = engine.Plan{}
+	m.appliedRules = nil
+	m.appliedRulesRevision = 0
 	m.phase = "disconnected"
 	if e != nil {
 		m.phase = "error"
 	}
 	m.mu.Unlock()
 	return e
+}
+
+// Another process can acquire an ephemeral port after planning. Rebuild with
+// new ports instead of requiring the user to find and close that application.
+func (m *Manager) startPreparedPlan(plan *engine.Plan, options *engine.Options) error {
+	for attempt := 0; attempt < 3; attempt++ {
+		var err error
+		if advanced, ok := m.runtime.(interface{ StartPlan(engine.Plan) error }); ok {
+			err = advanced.StartPlan(*plan)
+		} else if len(plan.XrayConfig) > 0 {
+			return errors.New("Этот сервер требует Windows-версию с Xray")
+		} else {
+			err = m.runtime.Start(plan.Config)
+		}
+		if err == nil || !errors.Is(err, engine.ErrLocalPortBusy) || attempt == 2 {
+			return err
+		}
+		options.APIPort, err = engine.FreePort()
+		if err != nil {
+			return engine.ErrLocalPortBusy
+		}
+		*plan, err = engine.Build(*options)
+		if err != nil {
+			return err
+		}
+	}
+	return engine.ErrLocalPortBusy
 }
 func (m *Manager) Close() {
 	m.stopServerPings()
@@ -766,6 +945,17 @@ func (m *Manager) monitor(ctx context.Context) {
 			}
 			next := networkSignature()
 			if next != network {
+				if len(m.plan.XrayConfig) > 0 {
+					// Xray socket binding must follow the new physical interface.
+					m.disconnect()
+					if err := m.connect(); err != nil {
+						m.mu.Lock()
+						m.lastError = err.Error()
+						m.mu.Unlock()
+					}
+					m.operation.Unlock()
+					return
+				}
 				m.mu.Lock()
 				m.policy.Samples = map[string]map[string]route.Sample{}
 				m.policy.Current = map[string]route.Decision{}
@@ -877,6 +1067,40 @@ func (m *Manager) check() error {
 		wg.Wait()
 	}
 	checkRoutes(candidates)
+	// Try further small batches immediately when a provider's first nodes are
+	// unavailable. Bound startup work and retain explicit manual selections.
+	if m.settings.SelectedServer == "" {
+		seen := map[string]bool{}
+		for _, candidate := range candidates {
+			seen[candidate] = true
+		}
+		for round := 0; round < 2 && runCtx.Err() == nil; round++ {
+			m.mu.Lock()
+			workingTunnel := false
+			for _, samples := range m.policy.Samples {
+				for tag, sample := range samples {
+					workingTunnel = workingTunnel || (strings.HasPrefix(tag, "vless-") && sample.Reachable && time.Since(sample.CheckedAt) < 2*time.Minute)
+				}
+			}
+			next := m.probeCandidatesLocked(m.plan.Candidates)
+			m.mu.Unlock()
+			if workingTunnel {
+				break
+			}
+			var batch []string
+			for _, candidate := range next {
+				if !seen[candidate] {
+					seen[candidate] = true
+					batch = append(batch, candidate)
+					candidates = append(candidates, candidate)
+				}
+			}
+			if len(batch) == 0 {
+				break
+			}
+			checkRoutes(batch)
+		}
+	}
 	if runCtx.Err() != nil {
 		return errors.New("Подключение отменено")
 	}
@@ -899,6 +1123,22 @@ func (m *Manager) check() error {
 			if !udp && d.Route != "block" && m.policy.Samples[g.ID][d.Route].Reachable {
 				hasWorking = true
 			}
+			m.mu.Unlock()
+		}
+	}
+	for _, group := range route.Groups() {
+		for _, udp := range []bool{false, true} {
+			m.mu.Lock()
+			decision := m.policy.ChooseTunnelFor(group.ID, candidates, udp, time.Now().UTC())
+			m.mu.Unlock()
+			ctx, cancel := context.WithTimeout(runCtx, 4*time.Second)
+			err := m.api.Switch(ctx, decision.Group, decision.Route)
+			cancel()
+			if err != nil {
+				return err
+			}
+			m.mu.Lock()
+			m.policy.Commit(decision)
 			m.mu.Unlock()
 		}
 	}
@@ -1031,9 +1271,44 @@ func (m *Manager) summary(diagnostics bool) map[string]any {
 	if m.pingRun != nil {
 		result["server_ping"] = m.pingRun.Progress
 	}
+	if m.platform == "windows" {
+		result["version"] = "0.1.11"
+		result["compatibility_build"] = "windows-routing-dns-1"
+		result["routing_supported"] = true
+		result["catalogue_supported"] = true
+		catalogueRows := m.catalogueSummary()
+		result["catalogue"] = catalogueRows
+		result["catalogue_record_count"] = len(catalogueRows)
+		result["catalogue_schema"] = 1
+		result["catalogue_transfer_supported"] = true
+		result["catalogue_error"] = m.catalogueError
+		if _, ok := m.runtime.(ApplicationRuntime); ok {
+			result["application_discovery_supported"] = true
+			result["applications"] = m.applicationSummary()
+			result["applications_checked"] = m.applicationChecked
+			result["applications_error"] = m.applicationError
+		}
+		result["routing_rules"] = m.settings.RoutingRules
+		result["routing_revision"] = m.settings.RoutingRevision
+		result["routing_pending"] = m.phase != "disconnected" && m.phase != "error" && route.RulesFingerprint(m.appliedRules) != route.RulesFingerprint(m.settings.RoutingRules)
+		engines := map[string]int{"sing-box": 0, "xray": 0}
+		for _, server := range m.settings.Servers {
+			if server.Xray != nil {
+				engines["xray"]++
+			} else {
+				engines["sing-box"]++
+			}
+		}
+		result["configured_engines"] = engines
+	}
 	if diagnostics {
 		delete(result, "servers")
 		delete(result, "subscriptions")
+		delete(result, "routing_rules")
+		delete(result, "applications")
+		delete(result, "catalogue")
+		result["known_application_count"] = len(m.applications)
+		result["routing_rule_count"] = len(m.settings.RoutingRules)
 		result["notice"] = "Проверки TLS/STUN не подтверждают вход в аккаунт, воспроизведение видео или реальный звонок"
 	}
 	// Status is serialized after the mutex is released by HandleJSON. Detach all

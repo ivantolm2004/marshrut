@@ -7,6 +7,7 @@ import (
 	"marshrut/engine"
 	"marshrut/probe"
 	"marshrut/profile"
+	"marshrut/route"
 	"net"
 	"net/http"
 	"os"
@@ -22,8 +23,7 @@ func TestEmbeddedEngineLifecycleWithoutSystemRoutes(t *testing.T) {
 	}
 	defer r.Close()
 	apiPort, _ := engine.FreePort()
-	base, _ := engine.FreePort()
-	p, e := engine.Build(engine.Options{Platform: "windows", TUN: false, DPI: true, APIPort: apiPort, BasePort: base, APISecret: "lifecycle-test", ProbeUser: "test", ProbePassword: "test"})
+	p, e := engine.Build(engine.Options{Platform: "windows", TUN: false, DPI: true, APIPort: apiPort, APISecret: "lifecycle-test", ProbeUser: "test", ProbePassword: "test", Rules: route.DefaultRules()})
 	if e != nil {
 		t.Fatal(e)
 	}

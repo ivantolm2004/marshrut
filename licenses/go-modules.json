@@ -597,14 +597,14 @@
   {
     "module": "code.pfad.fr/check",
     "version": "v1.1.0",
-    "notices": []
+    "notices": [
+      "COPYING"
+    ]
   },
   {
     "module": "filippo.io/age",
     "version": "v1.3.1",
-    "notices": [
-      "LICENSE"
-    ]
+    "notices": []
   },
   {
     "module": "filippo.io/edwards25519",
@@ -616,9 +616,7 @@
   {
     "module": "filippo.io/hpke",
     "version": "v0.4.0",
-    "notices": [
-      "LICENSE"
-    ]
+    "notices": []
   },
   {
     "module": "github.com/BurntSushi/toml",
@@ -640,7 +638,9 @@
   {
     "module": "github.com/RyuaNerin/go-krypto",
     "version": "v1.3.0",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/ViRb3/wgcf/v2",
@@ -664,17 +664,23 @@
   {
     "module": "github.com/akutz/memconn",
     "version": "v0.1.0",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/alexbrainman/sspi",
     "version": "v0.0.0-20231016080023-1a75b4708caa",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/anchore/go-lzo",
     "version": "v0.1.0",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/andybalholm/brotli",
@@ -693,7 +699,9 @@
   {
     "module": "github.com/anthropics/anthropic-sdk-go",
     "version": "v1.26.0",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/anytls/sing-anytls",
@@ -705,7 +713,9 @@
   {
     "module": "github.com/axiomhq/hyperloglog",
     "version": "v0.0.0-20240319100328-84253e514e02",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/caddyserver/certmagic",
@@ -729,14 +739,14 @@
   {
     "module": "github.com/cespare/xxhash/v2",
     "version": "v2.3.0",
-    "notices": []
+    "notices": [
+      "LICENSE.txt"
+    ]
   },
   {
     "module": "github.com/chzyer/readline",
     "version": "v0.0.0-20180603132655-2972be24d48e",
-    "notices": [
-      "LICENSE"
-    ]
+    "notices": []
   },
   {
     "module": "github.com/clipperhouse/uax29/v2",
@@ -789,12 +799,18 @@
   {
     "module": "github.com/coreos/go-iptables",
     "version": "v0.7.1-0.20240112124308-65c67c9f46e6",
-    "notices": []
+    "notices": [
+      "LICENSE",
+      "NOTICE"
+    ]
   },
   {
     "module": "github.com/coreos/go-oidc/v3",
     "version": "v3.17.0",
-    "notices": []
+    "notices": [
+      "LICENSE",
+      "NOTICE"
+    ]
   },
   {
     "module": "github.com/creack/pty",
@@ -834,7 +850,9 @@
   {
     "module": "github.com/dblohm7/wingoes",
     "version": "v0.0.0-20240119213807-a09d6be7affa",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/dgrijalva/jwt-go/v4",
@@ -844,12 +862,16 @@
   {
     "module": "github.com/dgryski/go-camellia",
     "version": "v0.0.0-20191119043421-69a8a13fb23d",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/dgryski/go-metro",
     "version": "v0.0.0-20180109044635-280f6062b5bc",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/dustin/go-humanize",
@@ -866,7 +888,9 @@
   {
     "module": "github.com/ebitengine/purego",
     "version": "v0.10.0",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/envoyproxy/go-control-plane",
@@ -947,17 +971,23 @@
   {
     "module": "github.com/go-jose/go-jose/v4",
     "version": "v4.1.3",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/go-logr/logr",
     "version": "v1.4.3",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/go-logr/stdr",
     "version": "v1.2.2",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/go-ole/go-ole",
@@ -969,14 +999,14 @@
   {
     "module": "github.com/go-viper/mapstructure/v2",
     "version": "v2.4.0",
-    "notices": [
-      "LICENSE"
-    ]
+    "notices": []
   },
   {
     "module": "github.com/go4org/hashtriemap",
     "version": "v0.0.0-20251130024219-545ba229f689",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/gobwas/httphead",
@@ -1038,7 +1068,9 @@
   {
     "module": "github.com/golang/protobuf",
     "version": "v1.5.4",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/google/btree",
@@ -1050,7 +1082,9 @@
   {
     "module": "github.com/google/certificate-transparency-go",
     "version": "v1.3.2",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/google/go-cmp",
@@ -1074,11 +1108,27 @@
   {
     "module": "github.com/google/nftables",
     "version": "v0.2.1-0.20240414091927-5e242ec57806",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
+  },
+  {
+    "module": "github.com/google/pprof",
+    "version": "v0.0.0-20261016150608-1facf8f91b50",
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/google/uuid",
     "version": "v1.6.0",
+    "notices": [
+      "LICENSE"
+    ]
+  },
+  {
+    "module": "github.com/hashicorp/golang-lru/v2",
+    "version": "v2.0.7",
     "notices": []
   },
   {
@@ -1110,14 +1160,14 @@
   {
     "module": "github.com/inconshreveable/mousetrap",
     "version": "v1.1.0",
-    "notices": [
-      "LICENSE"
-    ]
+    "notices": []
   },
   {
     "module": "github.com/insomniacslk/dhcp",
     "version": "v0.0.0-20260220084031-5adc3eb26f91",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/jackpal/go-nat-pmp",
@@ -1141,7 +1191,9 @@
   {
     "module": "github.com/keybase/go-keychain",
     "version": "v0.0.1",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/kisielk/errcheck",
@@ -1198,12 +1250,16 @@
   {
     "module": "github.com/letsencrypt/challtestsrv",
     "version": "v1.4.2",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/letsencrypt/pebble/v2",
     "version": "v2.10.0",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/libdns/acmedns",
@@ -1257,8 +1313,13 @@
   {
     "module": "github.com/manifoldco/promptui",
     "version": "v0.9.0",
+    "notices": []
+  },
+  {
+    "module": "github.com/mattn/go-isatty",
+    "version": "v0.0.24",
     "notices": [
-      "LICENSE.md"
+      "LICENSE"
     ]
   },
   {
@@ -1305,12 +1366,23 @@
   {
     "module": "github.com/mitchellh/go-ps",
     "version": "v1.0.0",
-    "notices": []
+    "notices": [
+      "LICENSE.md"
+    ]
+  },
+  {
+    "module": "github.com/ncruces/go-strftime",
+    "version": "v1.1.0",
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/openai/openai-go/v3",
     "version": "v3.26.0",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/opencontainers/runtime-spec",
@@ -1325,9 +1397,7 @@
   {
     "module": "github.com/pelletier/go-toml/v2",
     "version": "v2.2.4",
-    "notices": [
-      "LICENSE"
-    ]
+    "notices": []
   },
   {
     "module": "github.com/philhofer/fwd",
@@ -1337,7 +1407,9 @@
   {
     "module": "github.com/pierrec/lz4/v4",
     "version": "v4.1.26",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/pingcap/errors",
@@ -1349,17 +1421,23 @@
   {
     "module": "github.com/pion/dtls/v3",
     "version": "v3.1.5",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/pion/logging",
     "version": "v0.2.4",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/pion/transport/v4",
     "version": "v4.0.2",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/pires/go-proxyproto",
@@ -1395,9 +1473,7 @@
   {
     "module": "github.com/pmezard/go-difflib",
     "version": "v1.0.0",
-    "notices": [
-      "LICENSE"
-    ]
+    "notices": []
   },
   {
     "module": "github.com/quic-go/qpack",
@@ -1414,6 +1490,13 @@
     ]
   },
   {
+    "module": "github.com/remyoudompheng/bigfft",
+    "version": "v0.0.0-20230129092748-24d4a6f8daec",
+    "notices": [
+      "LICENSE"
+    ]
+  },
+  {
     "module": "github.com/rogpeppe/go-internal",
     "version": "v1.12.0",
     "notices": [
@@ -1423,7 +1506,9 @@
   {
     "module": "github.com/safchain/ethtool",
     "version": "v0.3.0",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/sagernet/asc-go",
@@ -1447,157 +1532,219 @@
   {
     "module": "github.com/sagernet/cronet-go",
     "version": "v0.0.0-20260912104727-0d28acc44093",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/sagernet/cronet-go/all",
     "version": "v0.0.0-20260912104727-0d28acc44093",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/sagernet/cronet-go/lib/android_386",
     "version": "v0.0.0-20260912104006-c10c03c318db",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/sagernet/cronet-go/lib/android_amd64",
     "version": "v0.0.0-20260912104006-c10c03c318db",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/sagernet/cronet-go/lib/android_arm",
     "version": "v0.0.0-20260912104006-c10c03c318db",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/sagernet/cronet-go/lib/android_arm64",
     "version": "v0.0.0-20260912104006-c10c03c318db",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/sagernet/cronet-go/lib/darwin_amd64",
     "version": "v0.0.0-20260912104006-c10c03c318db",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/sagernet/cronet-go/lib/darwin_arm64",
     "version": "v0.0.0-20260912104006-c10c03c318db",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/sagernet/cronet-go/lib/ios_amd64_simulator",
     "version": "v0.0.0-20260912104006-c10c03c318db",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/sagernet/cronet-go/lib/ios_arm64",
     "version": "v0.0.0-20260912104006-c10c03c318db",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/sagernet/cronet-go/lib/ios_arm64_simulator",
     "version": "v0.0.0-20260912104006-c10c03c318db",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/sagernet/cronet-go/lib/linux_386",
     "version": "v0.0.0-20260912104006-c10c03c318db",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/sagernet/cronet-go/lib/linux_386_musl",
     "version": "v0.0.0-20260912104006-c10c03c318db",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/sagernet/cronet-go/lib/linux_amd64",
     "version": "v0.0.0-20260912104006-c10c03c318db",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/sagernet/cronet-go/lib/linux_amd64_musl",
     "version": "v0.0.0-20260912104006-c10c03c318db",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/sagernet/cronet-go/lib/linux_arm",
     "version": "v0.0.0-20260912104006-c10c03c318db",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/sagernet/cronet-go/lib/linux_arm64",
     "version": "v0.0.0-20260912104006-c10c03c318db",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/sagernet/cronet-go/lib/linux_arm64_musl",
     "version": "v0.0.0-20260912104006-c10c03c318db",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/sagernet/cronet-go/lib/linux_arm_musl",
     "version": "v0.0.0-20260912104006-c10c03c318db",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/sagernet/cronet-go/lib/linux_loong64",
     "version": "v0.0.0-20260912104006-c10c03c318db",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/sagernet/cronet-go/lib/linux_loong64_musl",
     "version": "v0.0.0-20260912104006-c10c03c318db",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/sagernet/cronet-go/lib/linux_mips64le",
     "version": "v0.0.0-20260912104006-c10c03c318db",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/sagernet/cronet-go/lib/linux_mipsle",
     "version": "v0.0.0-20260912104006-c10c03c318db",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/sagernet/cronet-go/lib/linux_mipsle_musl",
     "version": "v0.0.0-20260912104006-c10c03c318db",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/sagernet/cronet-go/lib/linux_riscv64",
     "version": "v0.0.0-20260912104006-c10c03c318db",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/sagernet/cronet-go/lib/linux_riscv64_musl",
     "version": "v0.0.0-20260912104006-c10c03c318db",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/sagernet/cronet-go/lib/tvos_amd64_simulator",
     "version": "v0.0.0-20260912104006-c10c03c318db",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/sagernet/cronet-go/lib/tvos_arm64",
     "version": "v0.0.0-20260912104006-c10c03c318db",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/sagernet/cronet-go/lib/tvos_arm64_simulator",
     "version": "v0.0.0-20260912104006-c10c03c318db",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/sagernet/cronet-go/lib/windows_amd64",
     "version": "v0.0.0-20260912104006-c10c03c318db",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/sagernet/cronet-go/lib/windows_arm64",
     "version": "v0.0.0-20260912104006-c10c03c318db",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/sagernet/fswatch",
@@ -1616,9 +1763,7 @@
   {
     "module": "github.com/sagernet/gomobile",
     "version": "v0.1.12",
-    "notices": [
-      "LICENSE"
-    ]
+    "notices": []
   },
   {
     "module": "github.com/sagernet/gvisor",
@@ -1665,7 +1810,9 @@
   {
     "module": "github.com/sagernet/sing-cloudflared",
     "version": "v0.1.4-0.20261002084126-c1255ae368f2",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/sagernet/sing-mux",
@@ -1677,12 +1824,16 @@
   {
     "module": "github.com/sagernet/sing-openconnect",
     "version": "v0.1.1-0.20260929151225-cbd68c45de58",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/sagernet/sing-openvpn",
     "version": "v0.1.1-0.20260929151220-7c3045dbddce",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/sagernet/sing-quic",
@@ -1772,9 +1923,7 @@
   {
     "module": "github.com/sagikazarmark/locafero",
     "version": "v0.11.0",
-    "notices": [
-      "LICENSE"
-    ]
+    "notices": []
   },
   {
     "module": "github.com/sirupsen/logrus",
@@ -1784,49 +1933,39 @@
   {
     "module": "github.com/smallstep/pkcs7",
     "version": "v0.1.1",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/sourcegraph/conc",
     "version": "v0.3.1-0.20240121214520-5f936abd7ae8",
-    "notices": [
-      "LICENSE"
-    ]
+    "notices": []
   },
   {
     "module": "github.com/spf13/afero",
     "version": "v1.15.0",
-    "notices": [
-      "LICENSE.txt"
-    ]
+    "notices": []
   },
   {
     "module": "github.com/spf13/cast",
     "version": "v1.10.0",
-    "notices": [
-      "LICENSE"
-    ]
+    "notices": []
   },
   {
     "module": "github.com/spf13/cobra",
     "version": "v1.10.2",
-    "notices": [
-      "LICENSE.txt"
-    ]
+    "notices": []
   },
   {
     "module": "github.com/spf13/pflag",
     "version": "v1.0.10",
-    "notices": [
-      "LICENSE"
-    ]
+    "notices": []
   },
   {
     "module": "github.com/spf13/viper",
     "version": "v1.21.0",
-    "notices": [
-      "LICENSE"
-    ]
+    "notices": []
   },
   {
     "module": "github.com/spiffe/go-spiffe/v2",
@@ -1841,34 +1980,42 @@
   {
     "module": "github.com/stretchr/testify",
     "version": "v1.12.0",
-    "notices": []
-  },
-  {
-    "module": "github.com/subosito/gotenv",
-    "version": "v1.6.0",
     "notices": [
       "LICENSE"
     ]
   },
   {
+    "module": "github.com/subosito/gotenv",
+    "version": "v1.6.0",
+    "notices": []
+  },
+  {
     "module": "github.com/tailscale/certstore",
     "version": "v0.1.1-0.20260409135935-3638fb84b77d",
-    "notices": []
+    "notices": [
+      "LICENSE.md"
+    ]
   },
   {
     "module": "github.com/tailscale/go-winio",
     "version": "v0.0.0-20231025203758-c4f33415bf55",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/tailscale/hujson",
     "version": "v0.0.0-20260302212456-ecc657c15afd",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/tailscale/netlink",
     "version": "v1.1.1-0.20240822203006-4d49adab4de7",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/tailscale/peercred",
@@ -1880,37 +2027,51 @@
   {
     "module": "github.com/tailscale/web-client-prebuilt",
     "version": "v0.0.0-20250124233751-d4cd19a26976",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/tidwall/gjson",
     "version": "v1.18.0",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/tidwall/match",
     "version": "v1.1.1",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/tidwall/pretty",
     "version": "v1.2.1",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/tidwall/sjson",
     "version": "v1.2.5",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/tjfoc/gmsm",
     "version": "v1.4.1",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/u-root/uio",
     "version": "v0.0.0-20240224005618-d2acac8f3701",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/vishvananda/netns",
@@ -1929,7 +2090,9 @@
   {
     "module": "github.com/youmark/pkcs8",
     "version": "v0.0.0-20240726163527-a2c0da244d78",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "github.com/yuin/goldmark",
@@ -1951,7 +2114,9 @@
   {
     "module": "github.com/zeebo/pcg",
     "version": "v1.0.1",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "go.etcd.io/gofail",
@@ -1961,7 +2126,9 @@
   {
     "module": "go.opentelemetry.io/auto/sdk",
     "version": "v1.2.1",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "go.opentelemetry.io/contrib/detectors/gcp",
@@ -1971,27 +2138,37 @@
   {
     "module": "go.opentelemetry.io/otel",
     "version": "v1.39.0",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "go.opentelemetry.io/otel/metric",
     "version": "v1.39.0",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "go.opentelemetry.io/otel/sdk",
     "version": "v1.39.0",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "go.opentelemetry.io/otel/sdk/metric",
     "version": "v1.39.0",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "go.opentelemetry.io/otel/trace",
     "version": "v1.39.0",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "go.uber.org/goleak",
@@ -2029,10 +2206,7 @@
   {
     "module": "go.yaml.in/yaml/v3",
     "version": "v3.0.4",
-    "notices": [
-      "LICENSE",
-      "NOTICE"
-    ]
+    "notices": []
   },
   {
     "module": "go4.org/mem",
@@ -2074,7 +2248,7 @@
   },
   {
     "module": "golang.org/x/mod",
-    "version": "v0.41.0",
+    "version": "v0.42.0",
     "notices": [
       "LICENSE"
     ]
@@ -2135,7 +2309,7 @@
   },
   {
     "module": "golang.org/x/tools",
-    "version": "v0.51.0",
+    "version": "v0.52.0",
     "notices": [
       "LICENSE"
     ]
@@ -2170,12 +2344,16 @@
   {
     "module": "golang.zx2c4.com/wireguard/windows",
     "version": "v0.5.3",
-    "notices": []
+    "notices": [
+      "COPYING"
+    ]
   },
   {
     "module": "gonum.org/v1/gonum",
     "version": "v0.16.0",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "google.golang.org/genproto",
@@ -2214,7 +2392,9 @@
   {
     "module": "gopkg.in/check.v1",
     "version": "v1.0.0-20201130134442-10cb98267c6c",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   },
   {
     "module": "gopkg.in/yaml.v3",
@@ -2242,8 +2422,113 @@
     ]
   },
   {
+    "module": "modernc.org/cc/v4",
+    "version": "v4.30.3",
+    "notices": [
+      "LICENSE"
+    ]
+  },
+  {
+    "module": "modernc.org/ccgo/v4",
+    "version": "v4.37.0",
+    "notices": [
+      "LICENSE"
+    ]
+  },
+  {
+    "module": "modernc.org/fileutil",
+    "version": "v1.4.0",
+    "notices": [
+      "LICENSE"
+    ]
+  },
+  {
+    "module": "modernc.org/gc/v2",
+    "version": "v2.6.5",
+    "notices": [
+      "LICENSE"
+    ]
+  },
+  {
+    "module": "modernc.org/gc/v3",
+    "version": "v3.2.0",
+    "notices": []
+  },
+  {
+    "module": "modernc.org/goabi0",
+    "version": "v0.2.0",
+    "notices": [
+      "LICENSE"
+    ]
+  },
+  {
+    "module": "modernc.org/libc",
+    "version": "v1.79.0",
+    "notices": [
+      "LICENSE",
+      "LICENSE-3RD-PARTY.md"
+    ]
+  },
+  {
+    "module": "modernc.org/mathutil",
+    "version": "v1.7.1",
+    "notices": [
+      "LICENSE"
+    ]
+  },
+  {
+    "module": "modernc.org/memory",
+    "version": "v1.12.1",
+    "notices": [
+      "LICENSE",
+      "LICENSE-GO",
+      "LICENSE-LOGO",
+      "LICENSE-MMAP-GO"
+    ]
+  },
+  {
+    "module": "modernc.org/opt",
+    "version": "v0.2.0",
+    "notices": [
+      "LICENSE"
+    ]
+  },
+  {
+    "module": "modernc.org/sortutil",
+    "version": "v1.2.1",
+    "notices": [
+      "LICENSE"
+    ]
+  },
+  {
+    "module": "modernc.org/sqlite",
+    "version": "v1.61.1",
+    "notices": [
+      "LICENSE",
+      "LICENSE-3RD-PARTY.md",
+      "LICENSE-SQLITE",
+      "LICENSE-SQLITE_VEC"
+    ]
+  },
+  {
+    "module": "modernc.org/strutil",
+    "version": "v1.2.1",
+    "notices": [
+      "LICENSE"
+    ]
+  },
+  {
+    "module": "modernc.org/token",
+    "version": "v1.1.0",
+    "notices": [
+      "LICENSE"
+    ]
+  },
+  {
     "module": "zombiezen.com/go/capnproto2",
     "version": "v2.18.2+incompatible",
-    "notices": []
+    "notices": [
+      "LICENSE"
+    ]
   }
 ]

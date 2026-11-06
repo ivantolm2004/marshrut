@@ -22,6 +22,7 @@ type Server struct {
 	ID       string         `json:"id"`
 	Name     string         `json:"name"`
 	Outbound map[string]any `json:"outbound"`
+	Xray     map[string]any `json:"xray,omitempty"`
 }
 type Import struct {
 	Servers  []Server `json:"servers"`
@@ -36,6 +37,16 @@ func identify(o map[string]any) string {
 	return hex.EncodeToString(h[:8])
 }
 func Decode(text string) (Import, error) {
+	return decode(text, false)
+}
+
+// DecodeWindows enables formats and transports supplied by the Windows bundle.
+// Android keeps its existing capabilities until its own runtime supports Xray.
+func DecodeWindows(text string) (Import, error) {
+	return decode(text, true)
+}
+
+func decode(text string, windows bool) (Import, error) {
 	var result Import
 	if len(text) > MaxBytes {
 		return result, errors.New("Подписка превышает 4 МБ")
@@ -45,14 +56,20 @@ func Decode(text string) (Import, error) {
 		return result, errors.New("Пустая конфигурация")
 	}
 	if strings.HasPrefix(text, "{") || strings.HasPrefix(text, "[") {
+		if windows {
+			return decodeWindowsJSON(text)
+		}
 		return decodeJSON(text)
+	}
+	if windows && (strings.HasPrefix(text, "proxies:") || strings.Contains(text, "\nproxies:")) {
+		return decodeClash(text)
 	}
 	if !strings.Contains(text, "://") {
 		compact := strings.Join(strings.Fields(text), "")
 		decoded := false
 		for _, enc := range []*base64.Encoding{base64.StdEncoding, base64.RawStdEncoding, base64.URLEncoding, base64.RawURLEncoding} {
 			b, err := enc.DecodeString(compact)
-			if err == nil && strings.Contains(string(b), "://") {
+			if err == nil && (strings.Contains(string(b), "://") || (windows && (strings.HasPrefix(strings.TrimSpace(string(b)), "{") || strings.HasPrefix(strings.TrimSpace(string(b)), "[") || strings.Contains(string(b), "proxies:")))) {
 				text = string(b)
 				decoded = true
 				break
@@ -60,6 +77,9 @@ func Decode(text string) (Import, error) {
 		}
 		if !decoded {
 			return result, errors.New("Ожидается VLESS-ссылка, Base64-подписка или JSON sing-box")
+		}
+		if windows && (strings.HasPrefix(strings.TrimSpace(text), "{") || strings.HasPrefix(strings.TrimSpace(text), "[") || strings.Contains(text, "proxies:")) {
+			return decode(text, true)
 		}
 	}
 	seen := map[string]bool{}
@@ -69,6 +89,9 @@ func Decode(text string) (Import, error) {
 			continue
 		}
 		s, err := ParseVLESS(line)
+		if windows {
+			s, err = ParseVLESSWindows(line)
+		}
 		if err != nil {
 			result.Warnings = append(result.Warnings, fmt.Sprintf("Строка %d: %s", i+1, err))
 			continue
@@ -79,6 +102,9 @@ func Decode(text string) (Import, error) {
 		}
 	}
 	if len(result.Servers) == 0 {
+		if len(result.Warnings) > 0 {
+			return result, fmt.Errorf("Нет поддерживаемых VLESS-подключений. %s", result.Warnings[0])
+		}
 		return result, errors.New("Нет поддерживаемых VLESS-подключений")
 	}
 	return result, nil

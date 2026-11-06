@@ -3,7 +3,7 @@
 Русский сетевой клиент для **Windows 10/11 x64** и **Android 10+ arm64 без root**:
 VLESS, DPI-обход zapret и резервный маршрут Cloudflare WARP.
 
-**[Скачать Windows 0.1.7](https://github.com/ivantolm2004/marshrut/releases/download/v0.1.7/Marshrut-0.1.7-Windows-x64-Setup.exe)** ·
+**[Скачать Windows 0.1.11](https://github.com/ivantolm2004/marshrut/releases/download/v0.1.11/Marshrut-0.1.11-Windows-x64-Setup.exe)** ·
 **[Скачать Android 0.1.6](https://github.com/ivantolm2004/marshrut/releases/download/v0.1.6/Marshrut-0.1.6-arm64.apk)** ·
 [Все релизы](https://github.com/ivantolm2004/marshrut/releases)
 
@@ -14,6 +14,12 @@ VLESS-ключ или подписку; дополнительные папки,
 Тестовая версия: фактически выполненные проверки и ограничения описаны в
 [BUILD-REPORT.md](BUILD-REPORT.md). Android после исправления подключения
 требует полевой проверки на устройствах.
+
+Windows 0.1.11 включает поддержку XHTTP через Xray, автоматическое обнаружение
+приложений, локальный каталог маршрутов и его перенос через JSON.
+Правила приложений и сайтов учитываются при выборе DNS.
+Подробнее в [инструкции по маршрутизации](docs/ROUTING-RULES.md)
+и [описании совместимости подписок](docs/WINDOWS-COMPAT.md).
 
 ## Как пользоваться
 

@@ -76,6 +76,25 @@ func TestManualServerDoesNotProbeOtherSubscriptionServersAndPinsRemain(t *testin
 	}
 }
 
+func TestAutomaticSelectionTriesUnseenNodesAfterFirstFailedBatch(t *testing.T) {
+	m := testManager(t)
+	all := hundredServers(m)
+	first := m.probeCandidatesLocked(all)
+	for _, tag := range first[3:] {
+		for _, group := range route.Groups() {
+			m.policy.Record(group.ID, route.Sample{Route: tag, CheckedAt: time.Now()})
+		}
+	}
+	next := m.probeCandidatesLocked(all)
+	for _, tag := range next[3:] {
+		for _, tried := range first[3:] {
+			if tag == tried {
+				t.Fatal("failed first batch prevented trying untested nodes")
+			}
+		}
+	}
+}
+
 func TestAutomaticBatchesReachAllHundredEvenWhenEarlierFailuresAreStale(t *testing.T) {
 	m := testManager(t)
 	all := hundredServers(m)

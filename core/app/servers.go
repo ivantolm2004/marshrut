@@ -120,7 +120,9 @@ func (m *Manager) probeCandidatesLocked(all []string) []string {
 					}
 				}
 			}
-			h.failed = observed && allFailed
+			// Failed first attempts yield to untested servers immediately. Existing
+			// working routes retain the policy's three-failure hysteresis.
+			h.failed = observed && (allFailed || !h.good)
 			healths[candidate] = h
 		}
 		sort.SliceStable(vless, func(i, j int) bool {
@@ -159,6 +161,15 @@ func (m *Manager) probeCandidatesLocked(all []string) []string {
 	for _, group := range []string{"youtube", "discord", "telegram", "ai", "default"} {
 		if pin := m.settings.Pins[group]; strings.HasPrefix(pin, "vless-") {
 			add(pin)
+		}
+	}
+	rules := m.settings.RoutingRules
+	if m.appliedRules != nil {
+		rules = m.appliedRules
+	}
+	for _, rule := range rules {
+		if rule.Enabled && strings.HasPrefix(rule.Route, "vless-") {
+			add(rule.Route)
 		}
 	}
 	return result

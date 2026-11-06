@@ -34,6 +34,9 @@ func (m *Manager) StartBackground() {
 	m.warpWake = make(chan struct{}, 1)
 	m.mu.Unlock()
 	go m.backgroundLoop(ctx)
+	if _, ok := m.runtime.(ApplicationRuntime); ok && m.platform == "windows" {
+		go m.applicationDiscoveryLoop(ctx)
+	}
 	m.wakeWarpSetup()
 }
 func (m *Manager) wakeWarpSetup() {
